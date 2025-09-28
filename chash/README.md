@@ -52,13 +52,6 @@ func main() {
 
     fmt.Printf("Key 'user:12345' maps to server: %s\n", server)
 
-    // Get multiple servers for replication
-    servers, err = ring.GetNodes("user:12345", 2)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Printf("Key 'user:12345' should be replicated to: %v\n", servers)
 }
 ```
 
