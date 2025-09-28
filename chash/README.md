@@ -159,7 +159,7 @@ ring.AddNode("node-a")
 
 ### Error Handling in Production
 
-````go
+```go
 func safeGetNode(ring *chash.Ring, key string) (string, error) {
     if key == "" {
         return "", fmt.Errorf("invalid key")
@@ -173,7 +173,7 @@ func safeGetNode(ring *chash.Ring, key string) (string, error) {
 
     return node, err
 }
-
+```
 
 ## Use Cases
 
@@ -191,7 +191,7 @@ func (lb *LoadBalancer) GetServer(clientID string) (string, error) {
 func (lb *LoadBalancer) AddServer(server string) error {
     return lb.ring.AddNode(server)
 }
-````
+```
 
 ### Distributed Caching
 
@@ -284,4 +284,8 @@ func md5Hash(key string) uint64 {
 
 ring := chash.New(chash.Config{
     Replicas:
+```
+
+```
+
 ```
