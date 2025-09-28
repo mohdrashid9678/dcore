@@ -131,10 +131,7 @@ go func() {
 ## Benchmarks
 
 ```
-BenchmarkAddNode-8              5000    285432 ns/op    24563 B/op    12 allocs/op
-BenchmarkGetNode-8           2000000       956 ns/op        0 B/op     0 allocs/op
-BenchmarkGetNodeConcurrent-8 5000000       312 ns/op        0 B/op     0 allocs/op
-BenchmarkRemoveNode-8           3000    421876 ns/op     8234 B/op     8 allocs/op
+Yet to be done. Any kind of contributions are welcome.
 ```
 
 ## Best Practices
@@ -162,7 +159,7 @@ ring.AddNode("node-a")
 
 ### Error Handling in Production
 
-```go
+````go
 func safeGetNode(ring *chash.Ring, key string) (string, error) {
     if key == "" {
         return "", fmt.Errorf("invalid key")
@@ -176,26 +173,7 @@ func safeGetNode(ring *chash.Ring, key string) (string, error) {
 
     return node, err
 }
-```
 
-### Monitoring Integration
-
-```go
-// Example with Prometheus metrics
-import "github.com/prometheus/client_golang/prometheus"
-
-var (
-    nodeCount = prometheus.NewGauge(prometheus.GaugeOpts{
-        Name: "consistent_hash_nodes_total",
-        Help: "Total number of nodes in the hash ring",
-    })
-)
-
-func updateMetrics(ring *chash.Ring) {
-    stats := ring.GetStats()
-    nodeCount.Set(float64(stats.PhysicalNodes))
-}
-```
 
 ## Use Cases
 
@@ -213,7 +191,7 @@ func (lb *LoadBalancer) GetServer(clientID string) (string, error) {
 func (lb *LoadBalancer) AddServer(server string) error {
     return lb.ring.AddNode(server)
 }
-```
+````
 
 ### Distributed Caching
 
@@ -275,246 +253,22 @@ Run the test suite:
 go test -v ./...
 ```
 
-Run benchmarks:
-
-```bash
-go test -bench=. -benchmem
-```
-
-Check coverage:
-
-```bash
-go test -coverprofile=coverage.out
-go tool cover -html=coverage.out
-```
-
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Add tests for new functionality
 4. Ensure all tests pass (`go test -v ./...`)
-5. Run `go fmt` and `go vet`
+5. Run `go fmt`
 6. Update documentation if needed
 7. Commit your changes (`git commit -am 'Add amazing feature'`)
 8. Push to the branch (`git push origin feature/amazing-feature`)
 9. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgments
 
 - Based on the consistent hashing algorithm described in ["Consistent Hashing and Random Trees"](https://www.cs.princeton.edu/courses/archive/fall07/cos518/papers/chash.pdf)
 - Inspired by implementations in Cassandra, DynamoDB, and other distributed systems
-
-// ========================================
-
-// LICENSE
-MIT License
-
-Copyright (c) 2025 [Your Name]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-// ========================================
-
-// .github/workflows/ci.yml
-name: CI
-
-on:
-push:
-branches: [ main, develop ]
-pull_request:
-branches: [ main ]
-
-jobs:
-test:
-runs-on: ubuntu-latest
-strategy:
-matrix:
-go-version: [1.21, 1.22]
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Cache Go modules
-      uses: actions/cache@v3
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Install dependencies
-      run: go mod tidy
-
-    - name: Run tests
-      run: go test -v -race -coverprofile=coverage.out ./...
-
-    - name: Check coverage
-      run: |
-        go tool cover -func=coverage.out
-        go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//' | awk '{if($1<80) exit 1}'
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.out
-
-    - name: Run benchmarks
-      run: go test -bench=. -benchmem
-
-    - name: Check formatting
-      run: |
-        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
-          echo "The following files need formatting:"
-          gofmt -s -l .
-          exit 1
-        fi
-
-    - name: Run go vet
-      run: go vet ./...
-
-    - name: Run staticcheck
-      uses: dominikh/staticcheck-action@v1.3.0
-      with:
-        version: "2023.1.6"
-
-// ========================================
-
-// Makefile
-.PHONY: test bench coverage clean fmt vet staticcheck deps help
-
-# Default target
-
-help: ## Show this help message
-@echo 'Usage: make [target]'
-@echo ''
-@echo 'Targets:'
-@awk 'BEGIN {FS = ":._?## "} /^[a-zA-Z_-]+:.\_?## / {printf " %-15s %s\n", $1, $2}' $(MAKEFILE_LIST)
-
-deps: ## Install dependencies
-go mod tidy
-go mod verify
-
-test: ## Run tests
-go test -v -race ./...
-
-bench: ## Run benchmarks
-go test -bench=. -benchmem -run=^$
-
-coverage: ## Run tests with coverage
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out -o coverage.html
-@echo "Coverage report generated: coverage.html"
-
-fmt: ## Format code
-go fmt ./...
-
-vet: ## Run go vet
-go vet ./...
-
-staticcheck: ## Run staticcheck
-@which staticcheck > /dev/null || (echo "Installing staticcheck..." && go install honnef.co/go/tools/cmd/staticcheck@latest)
-staticcheck ./...
-
-clean: ## Clean build artifacts
-go clean
-rm -f coverage.out coverage.html
-
-ci: deps fmt vet staticcheck test ## Run all CI checks
-
-build-example: ## Build example program
-cd examples && go build -o consistent-hash-example ./main.go
-
-.DEFAULT_GOAL := help 100,
-HashFunc: customHashFunction,
-})
-
-// Create with initial nodes
-ring := chash.NewWithNodes(
-chash.Config{Replicas: 150},
-[]string{"server1", "server2", "server3"},
-)
-
-````
-
-### Managing Nodes
-
-```go
-// Add a node
-err := ring.AddNode("server4:8080")
-if err != nil {
-    // Handle error (e.g., node already exists)
-}
-
-// Remove a node
-err := ring.RemoveNode("server4:8080")
-if err != nil {
-    // Handle error (e.g., node not found)
-}
-
-// Get all nodes
-nodes := ring.Nodes() // Returns []string
-
-// Check if ring is empty
-if ring.IsEmpty() {
-    // Handle empty ring
-}
-````
-
-### Key Routing
-
-```go
-// Get the primary node for a key
-node, err := ring.GetNode("mykey")
-if err != nil {
-    // Handle error (e.g., no nodes available)
-}
-
-// Get multiple nodes for replication
-nodes, err := ring.GetNodes("mykey", 3)
-if err != nil {
-    // Handle error
-}
-```
-
-### Monitoring
-
-```go
-// Get ring statistics
-stats := ring.GetStats()
-fmt.Printf("Physical nodes: %d\n", stats.PhysicalNodes)
-fmt.Printf("Virtual nodes: %d\n", stats.VirtualNodes)
-fmt.Printf("Replicas per node: %d\n", stats.Replicas)
-
-// Get counts
-physicalCount := ring.NodeCount()
-virtualCount := ring.VirtualNodeCount()
-```
 
 ## Advanced Usage
 
